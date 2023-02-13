@@ -197,6 +197,10 @@ func (self *SoloService) makeBlock() (*types.Block, error) {
 	}
 	txRoot := common.ComputeMerkleRoot(txHash)
 	blockRoot := ledger.DefLedger.GetBlockRootWithPreBlockHashes(height+1, []common.Uint256{prevHash})
+	crossStateRoot, err := ledger.DefLedger.GetCrossStateRoot(height)
+	if err != nil {
+		return nil, fmt.Errorf("GetCrossStateRoot blockNum:%d, error :%s", height, err)
+	}
 	header := &types.Header{
 		Version:          ContextVersion,
 		PrevBlockHash:    prevHash,
@@ -206,6 +210,8 @@ func (self *SoloService) makeBlock() (*types.Block, error) {
 		Height:           height + 1,
 		ConsensusData:    common.GetNonce(),
 		NextBookkeeper:   nextBookkeeper,
+		CrossStateRoot: crossStateRoot,
+		ChainID: config.GetChainIdByNetId(config.DefConfig.P2PNode.NetworkId),
 	}
 	block := &types.Block{
 		Header:       header,
