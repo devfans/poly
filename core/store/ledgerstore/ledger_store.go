@@ -19,6 +19,7 @@
 package ledgerstore
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"sort"
@@ -585,6 +586,9 @@ func (this *LedgerStoreImp) AddBlock(block *types.Block, stateMerkleRoot common.
 	}
 
 	err = this.saveBlock(block, stateMerkleRoot)
+	headerBytes, _ := json.Marshal(block.Header)
+	vbftBytes, _ := json.Marshal(this.vbftPeerInfoblock) 
+	log.Debugf("Saving verified block, state %s header %s info %s err %v", stateMerkleRoot.ToHexString(), headerBytes, vbftBytes, err)
 	if err != nil {
 		return fmt.Errorf("saveBlock error %s", err)
 	}

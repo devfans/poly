@@ -19,6 +19,7 @@
 package utils
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net"
@@ -147,6 +148,8 @@ func BlkHeaderHandle(data *msgTypes.MsgPayload, p2p p2p.P2P, pid *evtActor.PID, 
 	log.Trace("[p2p]receive block header message", data.Addr, data.Id)
 	if pid != nil {
 		var blkHeader = data.Payload.(*msgTypes.BlkHeader)
+		headerBytes, err := json.Marshal(blkHeader)
+		log.Debugf("[p2p] received block header, addr %s, id %v, header %s, err %v", data.Addr, data.Id, headerBytes, err)
 		input := &msgCommon.AppendHeaders{
 			FromID:  data.Id,
 			Headers: blkHeader.BlkHdr,
@@ -161,6 +164,8 @@ func BlockHandle(data *msgTypes.MsgPayload, p2p p2p.P2P, pid *evtActor.PID, args
 
 	if pid != nil {
 		var block = data.Payload.(*msgTypes.Block)
+		headerBytes, _ := json.Marshal(block.Blk.Header)
+		log.Debugf("[p2p] received block, addr %s, id %v, header %s, root %s", data.Addr, data.Id, headerBytes, block.MerkleRoot.ToHexString())
 		input := &msgCommon.AppendBlock{
 			FromID:     data.Id,
 			BlockSize:  data.PayloadSize,
@@ -181,6 +186,8 @@ func ConsensusHandle(data *msgTypes.MsgPayload, p2p p2p.P2P, pid *evtActor.PID, 
 			log.Warn(err)
 			return
 		}
+		bytes, err := json.Marshal(consensus)
+		log.Debugf("[p2p] received consensus msg, addr %s, id %v, data %s, err %v", data.Addr, data.Id, bytes, err)
 		consensus.Cons.PeerId = data.Id
 		actor.ConsensusPid.Tell(&consensus.Cons)
 	}
